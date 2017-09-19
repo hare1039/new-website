@@ -160,7 +160,7 @@ function setFileURLs(new_provider) {
 
   setupMouseEvents();
 
-  var displayPage = 1;
+  var displayPage = 0;
   var queryItems = 20;
   var cachedQueryResult = {};
   var lazyScroll = false;
@@ -298,11 +298,12 @@ function setFileURLs(new_provider) {
       scrollProgress.update();
     } else if (lastQuery !== val) {
       animateTop();
-      displayPage = 1;
+      displayPage = 0;
       lazyScroll = true;
+      cachedQueryResult = {};
       index.search(val, {hitsPerPage: queryItems, page: displayPage}, function(err, content) {
         if (!err) {
-          cachedQueryResult = content;          
+          cachedQueryResult = content;
         }
         displayMatchingLibraries(err, content);
       });
@@ -313,12 +314,14 @@ function setFileURLs(new_provider) {
   var windowSelector = $(window);
   windowSelector.scroll(_.debounce(function() {
     if (lazyScroll && windowSelector.scrollTop() + windowSelector.height() * 2 >= $(document).height()) {
-      displayPage += 1; 
+      displayPage += 1;
       index.search(lastQuery, {hitsPerPage: queryItems, page: displayPage}, function(err, content) {
         if (!err) {
-          content.hits = cachedQueryResult.hits.concat(content.hits);
-          cachedQueryResult = content;
-        }
+           content.hits = cachedQueryResult.hits.concat(content.hits);
+           cachedQueryResult = content;
+        } else {
+           cachedQueryResult = {};
+	}
         displayMatchingLibraries(err, content);
       });
     }
